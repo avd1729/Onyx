@@ -5,14 +5,14 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sandbox/internal/executor"
+	model2 "sandbox/internal/model"
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"sandbox/pkg/model"
-	"sandbox/runtimes"
 )
 
-func RunCode(ctx context.Context, req *mcp.CallToolRequest, args model.CodeParams) (*mcp.CallToolResult, any, error) {
+func RunCode(ctx context.Context, req *mcp.CallToolRequest, args model2.CodeParams) (*mcp.CallToolResult, any, error) {
 	log.Printf("[sandbox-runner] Received run_code request: language=%s", args.Language)
 	if args.Language != "python" {
 		log.Printf("[sandbox-runner] Unsupported language: %s", args.Language)
@@ -21,7 +21,7 @@ func RunCode(ctx context.Context, req *mcp.CallToolRequest, args model.CodeParam
 
 	log.Printf("[sandbox-runner] Executing Python code in Docker sandbox...")
 	const timeout = 10 * time.Second
-	var runtime model.Executor = runtimes.PythonExecutor{}
+	var runtime executor.Executor = executor.PythonExecutor{}
 	result := runtime.Execute(ctx, args.Code, timeout)
 
 	log.Printf("[sandbox-runner] Execution finished. Output length: %d, Error: %v", len(result.Output), result.Err)

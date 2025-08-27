@@ -1,4 +1,4 @@
-package runtimes
+package executor
 
 import (
 	"bytes"
@@ -6,8 +6,8 @@ import (
 	"errors"
 	"log"
 	"os/exec"
-	"sandbox/pkg/model"
-	"sandbox/pkg/utils"
+	"sandbox/internal/model"
+	"sandbox/internal/utils"
 	"strings"
 	"time"
 )
