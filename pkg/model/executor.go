@@ -6,5 +6,5 @@ import (
 )
 
 type Executor interface {
-	Execute(ctx context.Context, code string, timeout time.Duration) ExecResult
+	Execute(ctx context.Context, code string, timeout time.Duration, dependencies ...string) ExecResult
 }

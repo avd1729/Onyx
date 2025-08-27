@@ -2,15 +2,16 @@ package tests
 
 import (
 	"context"
-	"sandbox/pkg/mcp/sandbox"
+	"sandbox/runtimes"
 	"testing"
 	"time"
 )
 
-func TestExecutePythonSimpleDocker(t *testing.T) {
+func TestExecute(t *testing.T) {
 	ctx := context.Background()
 	code := `print("Hello!")`
-	result := sandbox.ExecutePythonSimpleDocker(ctx, code, 10*time.Second)
+	runtime := runtimes.PythonExecutor{}
+	result := runtime.Execute(ctx, code, 10*time.Second)
 
 	if result.Err != nil {
 		t.Fatalf("Execution failed: %v", result.Err)

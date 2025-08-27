@@ -7,25 +7,46 @@ import (
 	"log"
 	"os/exec"
 	"sandbox/pkg/model"
+	"sandbox/pkg/utils"
+	"strings"
 	"time"
 )
 
 type PythonExecutor struct{}
 
-func (p PythonExecutor) Execute(ctx context.Context, code string, timeout time.Duration) model.ExecResult {
+func (p PythonExecutor) Execute(
+	ctx context.Context,
+	code string,
+	timeout time.Duration,
+	dependencies ...string,
+) model.ExecResult {
+
 	logPrefix := "[sandbox-exec]"
 	log.Println(logPrefix, "Preparing to execute Python code in Docker...")
 
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	if !isDockerAvailable() {
+	if !utils.IsDockerAvailable() {
 		log.Println(logPrefix, "Docker is not available or not running")
 		return model.ExecResult{Err: errors.New("docker is not available or not running")}
 	}
 
-	log.Println(logPrefix, "Running docker run --rm -i python:3.11 python -")
-	cmd := exec.CommandContext(ctx, "docker", "run", "--rm", "-i", "python:3.11", "python", "-")
+	// If dependencies exist, prepare install command
+	installCmd := ""
+	if len(dependencies) > 0 {
+		installCmd = "pip install " + strings.Join(dependencies, " ") + " && "
+	}
+
+	dockerCmd := []string{
+		"run", "--rm", "-i",
+		"python:3.11",
+		"sh", "-c", installCmd + "python -",
+	}
+
+	log.Println(logPrefix, "Running:", "docker", dockerCmd)
+
+	cmd := exec.CommandContext(ctx, "docker", dockerCmd...)
 	cmd.Stdin = bytes.NewReader([]byte(code))
 
 	var stdout, stderr bytes.Buffer
@@ -55,12 +76,4 @@ func (p PythonExecutor) Execute(ctx context.Context, code string, timeout time.D
 
 	log.Println(logPrefix, "Execution succeeded.")
 	return model.ExecResult{Output: output}
-}
-
-func isDockerAvailable() bool {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	cmd := exec.CommandContext(ctx, "docker", "version")
-	return cmd.Run() == nil
 }
