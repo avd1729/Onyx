@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"sandbox/pkg/mcp/sandbox"
 	"sandbox/pkg/model"
+	"sandbox/runtimes"
 )
 
 func RunCode(ctx context.Context, req *mcp.CallToolRequest, args model.CodeParams) (*mcp.CallToolResult, any, error) {
@@ -21,7 +21,8 @@ func RunCode(ctx context.Context, req *mcp.CallToolRequest, args model.CodeParam
 
 	log.Printf("[sandbox-runner] Executing Python code in Docker sandbox...")
 	const timeout = 10 * time.Second
-	result := sandbox.ExecutePythonSimpleDocker(ctx, args.Code, timeout)
+	var runtime model.Executor = runtimes.PythonExecutor{}
+	result := runtime.Execute(ctx, args.Code, timeout)
 
 	log.Printf("[sandbox-runner] Execution finished. Output length: %d, Error: %v", len(result.Output), result.Err)
 

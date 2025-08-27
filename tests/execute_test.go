@@ -1,21 +1,22 @@
-package sandbox
+package tests
 
 import (
 	"context"
+	"sandbox/pkg/mcp/sandbox"
 	"testing"
 	"time"
 )
 
 func TestExecutePythonSimpleDocker(t *testing.T) {
 	ctx := context.Background()
-	code := `print("Hello from test!")`
-	result := ExecutePythonSimpleDocker(ctx, code, 10*time.Second)
+	code := `print("Hello!")`
+	result := sandbox.ExecutePythonSimpleDocker(ctx, code, 10*time.Second)
 
 	if result.Err != nil {
 		t.Fatalf("Execution failed: %v", result.Err)
 	}
 
-	if want := "Hello from test!"; !contains(result.Output, want) {
+	if want := "Hello!"; !contains(result.Output, want) {
 		t.Errorf("Output does not contain expected string. Got: %q, want: %q", result.Output, want)
 	}
 }
