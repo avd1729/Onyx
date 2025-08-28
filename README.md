@@ -1,4 +1,4 @@
-# Sandbox MCP Server MVP
+# Onyx
 
 This project provides a minimal MCP (Model Context Protocol) server for executing Python code securely in a Docker sandbox. It is designed for easy integration with Claude Desktop and other MCP clients.
 
