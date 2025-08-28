@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"log"
 	"sandbox/internal/executor"
-	model2 "sandbox/internal/model"
+	"sandbox/internal/model"
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-func RunCode(ctx context.Context, req *mcp.CallToolRequest, args model2.CodeParams) (*mcp.CallToolResult, any, error) {
+func RunCode(ctx context.Context, req *mcp.CallToolRequest, args model.CodeParams) (*mcp.CallToolResult, any, error) {
 	log.Printf("[sandbox-runner] Received run_code request: language=%s", args.Language)
 	if args.Language != "python" {
 		log.Printf("[sandbox-runner] Unsupported language: %s", args.Language)

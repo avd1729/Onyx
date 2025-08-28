@@ -38,8 +38,52 @@ func (p PythonExecutor) Execute(
 		installCmd = "pip install " + strings.Join(dependencies, " ") + " && "
 	}
 
+	// Extra Docker sandboxing measures to consider:
+	//
+	// Security / Isolation:
+	//   --network none              → disable network access
+	//   --read-only                 → run with a read-only filesystem
+	//   --tmpfs /tmp                → provide a safe writable temp directory
+	//   --cap-drop=ALL              → drop all Linux capabilities
+	//   --security-opt no-new-privileges → prevent privilege escalation
+	//   --security-opt seccomp=...  → restrict syscalls via seccomp profile
+	//   --user 1000:1000            → avoid running as root
+	//
+	// Resource Limits:
+	//   --cpus="0.5"                → restrict to half a CPU core
+	//   --memory="256m"             → cap memory usage
+	//   --memory-swap="256m"        → prevent swap abuse
+	//   --pids-limit=64             → limit process spawning (avoid fork bombs)
+	//   --stop-timeout=5            → enforce container stop timeout
+	//
+	// Execution Environment Control:
+	//   - Whitelist allowed pip packages only
+	//   - Pre-build images with safe dependencies instead of installing on the fly
+	//   - Never mount host filesystems; only ephemeral volumes if needed
+	//   - Log execution metadata (time, resource usage) for auditing
+	//
+	// Example safer docker run could look like:
+	//   docker run --rm -i \
+	//     --network none \
+	//     --cpus=0.5 \
+	//     --memory=256m --memory-swap=256m \
+	//     --pids-limit=64 \
+	//     --read-only --tmpfs /tmp \
+	//     --cap-drop=ALL \
+	//     --security-opt no-new-privileges \
+	//     --user 1000:1000 \
+	//     python:3.11 sh -c "<installCmd> python -"
+
 	dockerCmd := []string{
 		"run", "--rm", "-i",
+		"--network", "none",
+		"--cpus", "0.5",
+		"--memory", "256m", "--memory-swap", "256m",
+		"--pids-limit", "64",
+		"--read-only", "--tmpfs", "/tmp",
+		"--cap-drop=ALL",
+		"--security-opt", "no-new-privileges",
+		"--user", "1000:1000",
 		"python:3.11",
 		"sh", "-c", installCmd + "python -",
 	}
