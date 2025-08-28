@@ -1,7 +1,8 @@
-package executor
+package tests
 
 import (
 	"context"
+	"sandbox/internal/executor"
 	"sandbox/internal/utils"
 	"testing"
 	"time"
@@ -15,7 +16,7 @@ func TestExecuteJava(t *testing.T) {
 		}
 	}`
 
-	runtime := JavaExecutor{}
+	runtime := executor.JavaExecutor{}
 	result := runtime.Execute(ctx, code, 10*time.Second)
 
 	if result.Err != nil {

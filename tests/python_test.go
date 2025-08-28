@@ -1,7 +1,8 @@
-package executor
+package tests
 
 import (
 	"context"
+	"sandbox/internal/executor"
 	"sandbox/internal/utils"
 	"testing"
 	"time"
@@ -10,7 +11,7 @@ import (
 func TestExecute(t *testing.T) {
 	ctx := context.Background()
 	code := `print("Hello!")`
-	runtime := PythonExecutor{}
+	runtime := executor.PythonExecutor{}
 	result := runtime.Execute(ctx, code, 10*time.Second)
 
 	if result.Err != nil {
