@@ -1,6 +1,6 @@
 # Onyx
 
-Onyx is a **MCP (Model Context Protocol) server** that executes code securely inside **Docker sandboxes**. It supports multiple programming languages and integrates seamlessly with **Claude Desktop** or other MCP clients.
+Onyx is a **MCP (Model Context Protocol) server** that executes code securely inside **Docker sandboxes**. It supports multiple programming languages and integrates seamlessly with **Claude Desktop** or other MCP clients. Onyx makes it safe and easy to execute arbitrary code in a **sandboxed MCP environment**. Perfect for **Claude Desktop** power users or anyone building AI workflows with executable code.
 
 ## Features
 
