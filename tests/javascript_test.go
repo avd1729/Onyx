@@ -8,15 +8,11 @@ import (
 	"time"
 )
 
-func TestExecuteC(t *testing.T) {
+func TestExecuteJs(t *testing.T) {
 	ctx := context.Background()
-	code := `#include <stdio.h>
-	int main() {
-		printf("Hello!\n");
-		return 0;
-	}`
+	code := `console.log("Hello!");`
 
-	runtime := executor.CExecutor{}
+	runtime := executor.JavaScriptExecutor{}
 	result := runtime.Execute(ctx, code, 10*time.Second)
 
 	if result.Err != nil {
