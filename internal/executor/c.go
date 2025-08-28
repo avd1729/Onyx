@@ -11,9 +11,9 @@ import (
 	"time"
 )
 
-type CppExecutor struct{}
+type CExecutor struct{}
 
-func (cpp CppExecutor) Execute(
+func (c CExecutor) Execute(
 	ctx context.Context,
 	code string,
 	timeout time.Duration,
@@ -21,7 +21,7 @@ func (cpp CppExecutor) Execute(
 ) model.ExecResult {
 
 	logPrefix := "[sandbox-exec]"
-	log.Println(logPrefix, "Preparing to execute Cpp code in Docker...")
+	log.Println(logPrefix, "Preparing to execute C code in Docker...")
 
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
@@ -32,7 +32,7 @@ func (cpp CppExecutor) Execute(
 	}
 
 	if len(dependencies) > 0 {
-		log.Println(logPrefix, "Warning: Cpp dependencies are not yet supported. Ignoring...")
+		log.Println(logPrefix, "Warning: C dependencies are not yet supported. Ignoring...")
 	}
 
 	dockerCmd := []string{
@@ -48,7 +48,7 @@ func (cpp CppExecutor) Execute(
 		"--security-opt", "no-new-privileges",
 		"--user", "1000:1000",
 		"gcc:12",
-		"sh", "-c", "cat > main.cpp && g++ main.cpp -o main && ./main",
+		"sh", "-c", "cat > main.c && gcc main.c -o main && ./main",
 	}
 
 	log.Println(logPrefix, "Running:", "docker", dockerCmd)

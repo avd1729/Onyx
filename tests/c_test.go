@@ -8,13 +8,11 @@ import (
 	"time"
 )
 
-func TestExecuteCpp(t *testing.T) {
+func TestExecuteC(t *testing.T) {
 	ctx := context.Background()
-	code := `#include <iostream>
-	using namespace std;
-	
+	code := `#include <stdio.h>
 	int main() {
-		cout << "Hello!" << endl;
+		printf("Hello!\n");
 		return 0;
 	}`
 

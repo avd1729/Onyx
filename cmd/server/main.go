@@ -20,6 +20,8 @@ func RunCode(ctx context.Context, req *mcp.CallToolRequest, args model.CodeParam
 
 	var runtime executor.Executor
 	switch args.Language {
+	case "c":
+		runtime = executor.CExecutor{}
 	case "python":
 		runtime = executor.PythonExecutor{}
 	case "java":
@@ -28,7 +30,7 @@ func RunCode(ctx context.Context, req *mcp.CallToolRequest, args model.CodeParam
 		runtime = executor.CppExecutor{}
 	default:
 		log.Printf("[sandbox-runner] Unsupported language: %s", args.Language)
-		return nil, nil, fmt.Errorf("unsupported language: %s (python, java and cpp supported)", args.Language)
+		return nil, nil, fmt.Errorf("unsupported language: %s", args.Language)
 	}
 
 	result := runtime.Execute(ctx, args.Code, timeout)
