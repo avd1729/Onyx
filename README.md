@@ -1,74 +1,177 @@
 # Onyx
 
-This project provides a minimal MCP (Model Context Protocol) server for executing Python code securely in a Docker sandbox. It is designed for easy integration with Claude Desktop and other MCP clients.
+Onyx is a **MCP (Model Context Protocol) server** that executes code securely inside **Docker sandboxes**. It supports multiple programming languages and integrates seamlessly with **Claude Desktop** or other MCP clients.
 
 ## Features
-- **Python runtime support**: Execute arbitrary Python code in a sandboxed Docker container.
-- **MCP protocol**: Exposes a `run_code` tool for remote code execution.
-- **Security**: Uses Docker for process isolation.
-- **Logging**: Prints execution and error logs to stderr.
-- **CI**: Automated tests run on every push/PR via GitHub Actions.
 
-## Project Structure
-```
-sandbox/
-├── .github/
-│   └── workflows/ci.yml      # GitHub Actions CI
-├── cmd/
-│   └── server/
-│       └── main.go           # MCP server entrypoint
-├── internal/
-│   ├── model/                # Code params, executor interface, result types
-|   ├── executor/
-│   └── utils/                # Docker availability check
-├── go.mod, go.sum
-```
+* 🔹 **Multi-language support**:
 
-## Setup Instructions
+  * Python (`python:3.11`)
+  * Java (`openjdk:17`)
+  * C (`gcc:12`)
+  * C++ (`gcc:12`)
+  * JavaScript / Node.js (`node:20`)
+  * Rust (`rust:1.72`)
 
-### Prerequisites
-- Go 1.20+
-- Docker (Desktop or Engine) installed and running
-- (Optional) Claude Desktop for interactive use
+* 🔹 **Docker sandboxing**:
 
-### Build and Run the Server
-```sh
-cd /path/to/sandbox
-# Run directly
-GO111MODULE=on go run ./cmd/server/main.go
-# Or build a binary
-GO111MODULE=on go build -o sandbox_server ./cmd/server/main.go
-./sandbox_server
-```
+  * Network disabled (`--network none`)
+  * Read-only FS with tmpfs mounts for safe writes
+  * Limited CPU, memory, and process count
+  * Non-root execution (`--user 1000:1000`)
 
-## Connecting with Claude Desktop
-1. In Claude Desktop, add a new MCP server configuration:
-   - **Command**: `go`
-   - **Args**: `["run", "/absolute/path/to/cmd/server/main.go"]`
-   - (Or use the built binary as the command)
-2. Start the server from Claude Desktop.
-3. Use the `run_code` tool with a request like:
-   ```json
-   {
-     "language": "python",
-     "code": "print('Hello from Claude!')"
-   }
-   ```
-4. The response will contain the output of your Python code.
+* 🔹 **MCP protocol**: Exposes a `run_code` tool for executing arbitrary code.
 
-## Current Capabilities
-- **Supported language**: Python (via Docker `python:3.11` image)
-- **Isolation**: Each request runs in a fresh container
-- **Error handling**: Returns errors for unsupported languages, Docker issues, or code errors
-- **Logging**: All logs go to stderr (do not break MCP protocol)
+* 🔹 **Logging**: All execution logs go to `stderr` (safe for MCP clients).
 
-## Limitations / TODO
-- No support for languages other than Python
-- No persistent state or file access
-- No advanced resource limits (CPU/memory) beyond Docker defaults
-- Dependency installation is basic (via pip if specified)
-- No authentication or user isolation
+* 🔹 **CI-ready**: Automated tests for executors via GitHub Actions.
 
 ---
 
-Feel free to open issues or PRs for improvements!
+## Project Structure
+
+```
+sandbox/
+├── .github/
+│   └── workflows/ci.yml       # GitHub Actions CI
+├── cmd/
+│   └── server/
+│       └── main.go            # MCP server entrypoint
+├── internal/
+│   ├── model/                 # Code params, executor interface, result types
+│   ├── executor/              # Language-specific executors
+│   └── utils/                 # Docker availability checks
+├── tests/
+├── go.mod, go.sum
+```
+
+---
+
+## Setup Instructions
+
+### 1. Prerequisites
+
+* [Go 1.20+](https://go.dev/dl/)
+* [Docker Desktop](https://docs.docker.com/desktop/) (Windows/macOS) or Docker Engine (Linux)
+
+Verify both:
+
+```sh
+go version
+docker --version
+```
+
+### 2. Pull Required Docker Images
+
+To avoid delays during the first execution, pre-pull all language runtimes:
+
+```sh
+docker pull python:3.11
+docker pull openjdk:17
+docker pull gcc:12
+docker pull node:20
+docker pull rust:1.72
+```
+
+### 3. Build and Run the Server
+
+From the root of the repo:
+
+```sh
+# Run directly
+go run ./cmd/server/main.go
+
+# Or build a binary (recommended for Claude Desktop)
+go build -o sandbox_server ./cmd/server/main.go
+```
+
+You should now have `sandbox_server` (or `sandbox_server.exe` on Windows).
+
+---
+
+## Connecting with Claude Desktop
+
+1. Locate Claude Desktop’s config file:
+
+   ```powershell
+   code $env:AppData\Claude\claude_desktop_config.json
+   ```
+
+2. Add an MCP server entry for **Onyx**:
+
+   ```json
+   {
+     "mcpServers": {
+       "onyx": {
+         "command": "<absolute path>/sandbox_server.exe",
+         "args": []
+       }
+     }
+   }
+   ```
+
+3. Restart Claude Desktop.
+
+4. You should now see the `run_code` tool available.
+
+---
+
+## Usage
+
+Call the `run_code` tool with JSON like:
+
+```json
+{
+  "language": "python",
+  "code": "print('Hello from Python!')"
+}
+```
+
+Example for **Java**:
+
+```json
+{
+  "language": "java",
+  "code": "class Main { public static void main(String[] args) { System.out.println(\"Hello Java!\"); } }"
+}
+```
+
+Example for **Rust**:
+
+```json
+{
+  "language": "rust",
+  "code": "fn main() { println!(\"Hello from Rust!\"); }"
+}
+```
+
+---
+
+## Extending to New Languages
+
+Adding support for another language requires:
+
+1. **Choose a Docker image** with the language’s compiler/runtime.
+   Example: `golang:1.22` for Go, `php:8.2-cli` for PHP.
+
+2. **Implement an Executor** in `internal/executor/<lang>.go`:
+
+   * Define a struct (e.g., `GoExecutor`).
+   * Implement the `Execute` method to:
+
+     * Pipe source code into the container.
+     * Compile/interpret it inside `/workspace`.
+     * Run the output binary/script.
+
+3. **Register it in `main.go`**:
+
+   ```go
+   if args.Language == "go" {
+       runtime = executor.GoExecutor{}
+   }
+   ```
+
+4. **Write a test** in `internal/executor/go_test.go`.
+
+5. **Pull the Docker image** ahead of time (`docker pull golang:1.22`).
+
