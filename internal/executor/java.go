@@ -8,21 +8,20 @@ import (
 	"os/exec"
 	"sandbox/internal/model"
 	"sandbox/internal/utils"
-	"strings"
 	"time"
 )
 
-type PythonExecutor struct{}
+type JavaExecutor struct{}
 
-func (p PythonExecutor) Execute(
+func (j JavaExecutor) Execute(
 	ctx context.Context,
 	code string,
 	timeout time.Duration,
-	dependencies ...string,
+	dependencies ...string, // For future: support adding external JARs
 ) model.ExecResult {
 
 	logPrefix := "[sandbox-exec]"
-	log.Println(logPrefix, "Preparing to execute Python code in Docker...")
+	log.Println(logPrefix, "Preparing to execute Java code in Docker...")
 
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
@@ -32,10 +31,8 @@ func (p PythonExecutor) Execute(
 		return model.ExecResult{Err: errors.New("docker is not available or not running")}
 	}
 
-	// If dependencies exist, prepare install command
-	installCmd := ""
 	if len(dependencies) > 0 {
-		installCmd = "pip install " + strings.Join(dependencies, " ") + " && "
+		log.Println(logPrefix, "Warning: Java dependencies are not yet supported. Ignoring...")
 	}
 
 	dockerCmd := []string{
@@ -44,12 +41,14 @@ func (p PythonExecutor) Execute(
 		"--cpus", "0.5",
 		"--memory", "256m", "--memory-swap", "256m",
 		"--pids-limit", "64",
-		"--read-only", "--tmpfs", "/tmp",
+		"--read-only",
+		"--tmpfs", "/workspace:rw,exec,uid=1000,gid=1000",
+		"-w", "/workspace",
 		"--cap-drop=ALL",
 		"--security-opt", "no-new-privileges",
 		"--user", "1000:1000",
-		"python:3.11",
-		"sh", "-c", installCmd + "python -",
+		"openjdk:17",
+		"sh", "-c", "cat > Main.java && javac Main.java && java Main",
 	}
 
 	log.Println(logPrefix, "Running:", "docker", dockerCmd)

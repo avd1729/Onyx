@@ -7,10 +7,15 @@ import (
 	"time"
 )
 
-func TestExecute(t *testing.T) {
+func TestExecuteJava(t *testing.T) {
 	ctx := context.Background()
-	code := `print("Hello!")`
-	runtime := PythonExecutor{}
+	code := `class Main {
+		public static void main(String[] args) {
+			System.out.println("Hello!");
+		}
+	}`
+
+	runtime := JavaExecutor{}
 	result := runtime.Execute(ctx, code, 10*time.Second)
 
 	if result.Err != nil {
