@@ -118,32 +118,8 @@ You should now have `sandbox_server` (or `sandbox_server.exe` on Windows).
 
 ## Usage
 
-Call the `run_code` tool with JSON like:
-
-```json
-{
-  "language": "python",
-  "code": "print('Hello from Python!')"
-}
-```
-
-Example for **Java**:
-
-```json
-{
-  "language": "java",
-  "code": "class Main { public static void main(String[] args) { System.out.println(\"Hello Java!\"); } }"
-}
-```
-
-Example for **Rust**:
-
-```json
-{
-  "language": "rust",
-  "code": "fn main() { println!(\"Hello from Rust!\"); }"
-}
-```
+<img width="1479" height="1157" alt="image" src="https://github.com/user-attachments/assets/baf31412-4aaa-4c04-ad59-da48c7b24454" />
+For a good example of how it can be used, check out this chat: https://claude.ai/share/512e1f5a-77fc-40ca-8c49-b372b2c680f9
 
 ---
 
